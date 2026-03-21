@@ -1,4 +1,6 @@
 "use client"
+
+export const dynamic = "force-dynamic"
 import { sendEmail, emailTemplates } from "@/lib/email"
 
 import { useEffect, useState } from "react"

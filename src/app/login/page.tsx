@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = "force-dynamic"
+
 import { useEffect, useState } from "react"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
