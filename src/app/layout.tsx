@@ -15,10 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Excelsior ERP — LICET CSE",
   description: "Department Management System — Loyola-ICAM College of Engineering and Technology, Department of Computer Science and Engineering",
-  icons: {
-    icon: "/licet-logo.png",
-    apple: "/licet-logo.png",
-  },
   openGraph: {
     title: "Excelsior ERP — LICET CSE",
     description: "LICET CSE Department Management System",
@@ -33,6 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/png" href="/licet-logo.png" />
+        <link rel="apple-touch-icon" href="/licet-logo.png" />
+        <link rel="shortcut icon" href="/licet-logo.png" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
