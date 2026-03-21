@@ -8,7 +8,7 @@ import {
   Calendar, Activity, Wallet, Package, Award,
   Heart, Briefcase, FolderOpen, MessageSquare,
   AlertTriangle, Bell, FileText, FileEdit,
-  Clock, TrendingUp, BarChart2, Users, LogOut, Star, BellRing,
+  Clock, TrendingUp, BarChart2, Users, LogOut, Star, BellRing, KeyRound,
   ChevronLeft, ChevronRight, Menu, X,
 } from "lucide-react"
 
@@ -41,6 +41,7 @@ const NAV_HOD = [
   { icon: Wallet,          label: "Finance",        href: "/dashboard/finance" },
   { icon: Package,         label: "Inventory",      href: "/dashboard/inventory" },
   { icon: TrendingUp,      label: "Promotion",      href: "/dashboard/promotion" },
+  { icon: KeyRound,        label: "Change Password", href: "/dashboard/change-password" },
 ]
 const NAV_FACULTY = [
   { icon: LayoutDashboard, label: "Dashboard",      href: "/dashboard" },
@@ -61,6 +62,7 @@ const NAV_FACULTY = [
   { icon: FolderOpen,      label: "Documents",      href: "/dashboard/documents" },
   { icon: MessageSquare,   label: "Feedback",       href: "/dashboard/feedback" },
   { icon: Star,            label: "Appraisal",      href: "/dashboard/appraisal" },
+  { icon: KeyRound,        label: "Change Password", href: "/dashboard/change-password" },
 ]
 const NAV_STUDENT = [
   { icon: LayoutDashboard, label: "Dashboard",      href: "/dashboard" },
@@ -78,6 +80,7 @@ const NAV_STUDENT = [
   { icon: Star,            label: "Appraisal",      href: "/dashboard/appraisal" },
   { icon: BellRing,        label: "Alerts",         href: "/dashboard/alerts" },
   { icon: Star,            label: "Appraisal",      href: "/dashboard/appraisal" },
+  { icon: KeyRound,        label: "Change Password", href: "/dashboard/change-password" },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
