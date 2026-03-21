@@ -1,1 +1,0 @@
-export { default } from 'next/dist/server/web/exports/middleware'
