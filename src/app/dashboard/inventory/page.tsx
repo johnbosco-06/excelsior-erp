@@ -1,19 +1,18 @@
 "use client"
 
-export const dynamic = "force-dynamic"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import type { AuthUser } from "@/lib/auth"
 import type { Database } from "@/lib/supabase"
-import { Package, Plus, X, Loader2, Download, AlertTriangle } from "lucide-react"
+import { Plus, X, Package, Monitor, Wrench, AlertTriangle, Loader2, Download, Search, CheckCircle2 } from "lucide-react"
 import * as XLSX from "xlsx"
 
 type InventoryItem = Database['public']['Tables']['inventory']['Row']
-type Profile = Database['public']['Tables']['profiles']['Row']
 
-const CATEGORIES = ['Computer','Printer','Projector','Server','Network Equipment','Lab Equipment','Furniture','Software License','Other']
+const CATEGORIES = ['Computers', 'Networking', 'Furniture', 'Electronics', 'Software Licenses', 'Other']
+const LOCATIONS = ['CS Lab 1', 'CS Lab 2', 'CS Lab 3', 'Hardware Lab', 'Department Library', 'HOD Cabin', 'Staff Room', 'Seminar Hall']
+
 const STATUS_COLORS = {
   OPERATIONAL: 'text-green-500 bg-green-500/10 border-green-500/20',
   MAINTENANCE: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20',
@@ -22,22 +21,21 @@ const STATUS_COLORS = {
 
 export default function InventoryPage() {
   const router = useRouter()
-  const [authUser, setAuthUser]   = useState<AuthUser | null>(null)
-  const [profile, setProfile]     = useState<Profile | null>(null)
-  const [items, setItems]         = useState<InventoryItem[]>([])
-  const [showForm, setShowForm]   = useState(false)
-  const [saving, setSaving]       = useState(false)
-  const [filterStatus, setFilterStatus] = useState('ALL')
-  const [filterCat, setFilterCat] = useState('ALL')
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
+  const [inventory, setInventory] = useState<InventoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+  
   const [form, setForm] = useState({
-    asset_tag: '', name: '', category: 'Computer',
-    status: 'OPERATIONAL' as 'OPERATIONAL'|'MAINTENANCE'|'RETIRED',
-    location: '', purchase_date: '', purchase_value: '', notes: '', next_service_date: ''
+    asset_tag: '', name: '', category: 'Computers', status: 'OPERATIONAL' as 'OPERATIONAL'|'MAINTENANCE'|'RETIRED',
+    location: 'CS Lab 1', purchase_date: '', purchase_value: '', next_service_date: '', notes: ''
   })
 
   const isHOD = authUser?.type === 'staff' && authUser.data.role === 'HOD'
   const isFaculty = authUser?.type === 'staff'
-  const DEPT  = '00000000-0000-0000-0000-000000000001'
+  const DEPT = '00000000-0000-0000-0000-000000000001'
 
   useEffect(() => {
     const stored = localStorage.getItem('excelsior_user')
@@ -45,91 +43,98 @@ export default function InventoryPage() {
     const au = JSON.parse(stored) as AuthUser
     setAuthUser(au)
     if (au.type === 'student') { router.push('/dashboard'); return }
-    supabase.from('profiles').select('*').eq('email', au.data.email).single()
-      .then(({ data }) => { if (data) setProfile(data) })
+    loadInventory()
   }, [router])
 
-  const loadItems = async () => {
-    const { data } = await supabase.from('inventory').select('*')
-      .eq('department_id', DEPT).order('created_at', { ascending: false })
-    if (data) setItems(data)
+  const loadInventory = async () => {
+    setLoading(true)
+    const { data } = await supabase.from('inventory')
+      .select('*')
+      .eq('department_id', DEPT)
+      .order('asset_tag', { ascending: true })
+    if (data) setInventory(data)
+    setLoading(false)
   }
 
-  useEffect(() => { if (profile) loadItems() }, [profile])
-
-  const addItem = async () => {
-    if (!profile || !form.asset_tag || !form.name) return
+  const saveAsset = async () => {
+    if (!form.asset_tag || !form.name) return
     setSaving(true)
-    await supabase.from('inventory').insert({
+    const { error } = await supabase.from('inventory').upsert({
       department_id: DEPT,
-      asset_tag: form.asset_tag,
+      asset_tag: form.asset_tag.toUpperCase(),
       name: form.name,
       category: form.category,
       status: form.status,
-      location: form.location || null,
+      location: form.location,
       purchase_date: form.purchase_date || null,
       purchase_value: form.purchase_value ? Number(form.purchase_value) : null,
-      notes: form.notes || null,
       next_service_date: form.next_service_date || null,
-    })
+      notes: form.notes
+    }, { onConflict: 'asset_tag' })
+    
     setSaving(false)
-    setForm({ asset_tag:'', name:'', category:'Computer', status:'OPERATIONAL', location:'', purchase_date:'', purchase_value:'', notes:'', next_service_date:'' })
-    setShowForm(false)
-    loadItems()
+    if (error) {
+      alert(error.message)
+    } else {
+      setShowForm(false)
+      setForm({ asset_tag: '', name: '', category: 'Computers', status: 'OPERATIONAL', location: 'CS Lab 1', purchase_date: '', purchase_value: '', next_service_date: '', notes: '' })
+      loadInventory()
+    }
   }
 
-  const updateStatus = async (id: string, status: 'OPERATIONAL'|'MAINTENANCE'|'RETIRED') => {
-    await supabase.from('inventory').update({ status }).eq('id', id)
-    loadItems()
+  const updateStatus = async (id: string, newStatus: string) => {
+    await supabase.from('inventory').update({ status: newStatus as any }).eq('id', id)
+    loadInventory()
   }
 
   const exportXLSX = () => {
-    const rows = items.map(i => ({
-      'Asset Tag': i.asset_tag, 'Name': i.name, 'Category': i.category,
-      'Status': i.status, 'Location': i.location ?? '',
-      'Purchase Date': i.purchase_date ?? '', 'Value (₹)': i.purchase_value ?? '',
-      'Next Service': i.next_service_date ?? '', 'Notes': i.notes ?? ''
+    const rows = inventory.map(i => ({
+      'Asset Tag': i.asset_tag,
+      'Name/Model': i.name,
+      'Category': i.category,
+      'Location': i.location,
+      'Status': i.status,
+      'Purchase Date': i.purchase_date ? new Date(i.purchase_date).toLocaleDateString() : '—',
+      'Value (₹)': i.purchase_value ? Number(i.purchase_value).toFixed(2) : '—',
+      'Next Service': i.next_service_date ? new Date(i.next_service_date).toLocaleDateString() : '—',
     }))
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Inventory')
-    XLSX.writeFile(wb, `Inventory_CSE_${new Date().toISOString().split('T')[0]}.xlsx`)
+    ws['!cols'] = [{ wch: 15 },{ wch: 30 },{ wch: 15 },{ wch: 15 },{ wch: 12 },{ wch: 15 },{ wch: 12 },{ wch: 15 }]
+    XLSX.writeFile(wb, `CSE_Inventory_Assets_${new Date().toISOString().split('T')[0]}.xlsx`)
   }
 
-  const filtered = items.filter(i => {
-    if (filterStatus !== 'ALL' && i.status !== filterStatus) return false
-    if (filterCat !== 'ALL' && i.category !== filterCat) return false
-    return true
-  })
-
-  const needsService = items.filter(i => {
-    if (!i.next_service_date) return false
-    return new Date(i.next_service_date) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-  })
+  const filtered = inventory.filter(i => 
+    i.name.toLowerCase().includes(search.toLowerCase()) || 
+    i.asset_tag.toLowerCase().includes(search.toLowerCase())
+  )
 
   const stats = {
-    total:       items.length,
-    operational: items.filter(i => i.status === 'OPERATIONAL').length,
-    maintenance: items.filter(i => i.status === 'MAINTENANCE').length,
-    retired:     items.filter(i => i.status === 'RETIRED').length,
+    total: inventory.length,
+    operational: inventory.filter(i => i.status === 'OPERATIONAL').length,
+    maintenance: inventory.filter(i => i.status === 'MAINTENANCE').length,
+    value: inventory.reduce((s, i) => s + (Number(i.purchase_value) || 0), 0)
   }
+
+  if (!isFaculty && !isHOD) return null
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <span className="font-mono text-xs text-primary">// SECTION: INVENTORY</span>
-          <h1 className="text-2xl font-bold tracking-tight mt-1">Inventory Management</h1>
-          <p className="font-mono text-xs text-muted-foreground mt-1">Lab equipment, computers and department assets</p>
+          <h1 className="text-2xl font-bold tracking-tight mt-1">Lab & Asset Management</h1>
+          <p className="font-mono text-xs text-muted-foreground mt-1">Track department computers, network gear, and lab equipment.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={exportXLSX}
-            className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white font-mono text-xs rounded hover:bg-green-700">
-            <Download className="w-3 h-3" /> Export
+          <button onClick={exportXLSX} disabled={inventory.length === 0}
+            className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white font-mono text-xs rounded hover:bg-green-700 disabled:opacity-50 transition-colors">
+            <Download className="w-3 h-3" /> Export NAAC Report
           </button>
-          {(isHOD || isFaculty) && (
-            <button onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs rounded hover:bg-primary/90">
+          {isHOD && (
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs rounded hover:bg-primary/90 transition-colors">
               <Plus className="w-3 h-3" /> Add Asset
             </button>
           )}
@@ -139,53 +144,42 @@ export default function InventoryPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Assets',  value: stats.total,       color: 'text-foreground' },
-          { label: 'Operational',   value: stats.operational, color: 'text-green-500' },
-          { label: 'Maintenance',   value: stats.maintenance, color: 'text-yellow-500' },
-          { label: 'Retired',       value: stats.retired,     color: 'text-red-500' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="bg-card border border-border rounded-lg p-4">
-            <p className="font-mono text-xs text-muted-foreground mb-1">{label}</p>
+          { label: 'Total Assets', value: stats.total, icon: Package, color: 'text-foreground' },
+          { label: 'Operational', value: stats.operational, icon: CheckCircle2, color: 'text-green-500' },
+          { label: 'Needs Repair', value: stats.maintenance, icon: Wrench, color: 'text-yellow-500' },
+          { label: 'Total Est. Value', value: `₹${stats.value.toLocaleString()}`, icon: Monitor, color: 'text-primary' },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className="bg-card border border-border rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon className={`w-4 h-4 ${color}`} />
+              <p className="font-mono text-xs text-muted-foreground">{label}</p>
+            </div>
             <p className={`text-2xl font-bold ${color}`}>{value}</p>
           </div>
         ))}
       </div>
 
-      {/* Service due alert */}
-      {needsService.length > 0 && (
-        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-3">
-          <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-          <p className="font-mono text-xs text-yellow-500">
-            {needsService.length} asset(s) due for service within 30 days:
-            {' '}{needsService.slice(0,3).map(i => i.name).join(', ')}
-            {needsService.length > 3 && ` +${needsService.length - 3} more`}
-          </p>
-        </div>
-      )}
-
-      {/* Add form */}
-      {showForm && (
+      {/* Add Form */}
+      {showForm && isHOD && (
         <div className="bg-card border border-primary/30 rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-xs text-primary">// ADD ASSET</span>
-            <button onClick={() => setShowForm(false)}><X className="w-4 h-4 text-muted-foreground" /></button>
+            <span className="font-mono text-xs text-primary">// NEW ASSET ENTRY</span>
+            <button onClick={() => setShowForm(false)}><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>
           </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { key: 'asset_tag',     label: 'Asset Tag *',       placeholder: 'e.g. CSE-PC-001' },
-              { key: 'name',          label: 'Asset Name *',      placeholder: 'e.g. Dell Optiplex 7090' },
-              { key: 'location',      label: 'Location',          placeholder: 'e.g. CS Lab 1' },
-              { key: 'purchase_date', label: 'Purchase Date',     placeholder: '', type: 'date' },
-              { key: 'purchase_value',label: 'Purchase Value (₹)',placeholder: '0', type: 'number' },
-              { key: 'next_service_date', label: 'Next Service Date', placeholder: '', type: 'date' },
-            ].map(({ key, label, placeholder, type }) => (
-              <div key={key} className="space-y-1">
-                <label className="font-mono text-xs text-muted-foreground">{label}</label>
-                <input type={type ?? 'text'} value={(form as any)[key]} placeholder={placeholder}
-                  onChange={e => setForm({...form, [key]: e.target.value})}
-                  className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none" />
-              </div>
-            ))}
+            <div className="space-y-1">
+              <label className="font-mono text-xs text-muted-foreground">Asset Tag (ID) *</label>
+              <input value={form.asset_tag} onChange={e => setForm({...form, asset_tag: e.target.value})}
+                placeholder="e.g. LICET-CSE-PC01"
+                className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none uppercase" />
+            </div>
+            <div className="sm:col-span-2 space-y-1">
+              <label className="font-mono text-xs text-muted-foreground">Asset Name / Model *</label>
+              <input value={form.name} onChange={e => setForm({...form, name: e.target.value})}
+                placeholder="e.g. Dell Optiplex 7090, Intel i7, 16GB RAM"
+                className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none" />
+            </div>
             <div className="space-y-1">
               <label className="font-mono text-xs text-muted-foreground">Category</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}
@@ -194,7 +188,14 @@ export default function InventoryPage() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="font-mono text-xs text-muted-foreground">Status</label>
+              <label className="font-mono text-xs text-muted-foreground">Location</label>
+              <select value={form.location} onChange={e => setForm({...form, location: e.target.value})}
+                className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none">
+                {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="font-mono text-xs text-muted-foreground">Initial Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value as any})}
                 className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none">
                 <option value="OPERATIONAL">Operational</option>
@@ -203,89 +204,94 @@ export default function InventoryPage() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="font-mono text-xs text-muted-foreground">Notes</label>
-              <input value={form.notes} onChange={e => setForm({...form, notes: e.target.value})}
-                placeholder="Any notes..."
+              <label className="font-mono text-xs text-muted-foreground">Purchase Value (₹)</label>
+              <input type="number" value={form.purchase_value} onChange={e => setForm({...form, purchase_value: e.target.value})}
+                placeholder="0.00"
+                className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none" />
+            </div>
+            <div className="space-y-1">
+              <label className="font-mono text-xs text-muted-foreground">Purchase Date</label>
+              <input type="date" value={form.purchase_date} onChange={e => setForm({...form, purchase_date: e.target.value})}
+                className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none" />
+            </div>
+            <div className="space-y-1">
+              <label className="font-mono text-xs text-muted-foreground">Next Service Due</label>
+              <input type="date" value={form.next_service_date} onChange={e => setForm({...form, next_service_date: e.target.value})}
                 className="w-full h-10 px-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none" />
             </div>
           </div>
-          <button onClick={addItem} disabled={saving || !form.asset_tag || !form.name}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs rounded hover:bg-primary/90 disabled:opacity-50">
-            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Package className="w-3 h-3" />}
-            {saving ? 'Adding...' : 'Add Asset'}
-          </button>
+          <div className="flex gap-3 pt-2">
+            <button onClick={saveAsset} disabled={saving || !form.asset_tag || !form.name}
+              className="flex-1 h-10 bg-primary text-primary-foreground font-mono text-xs rounded hover:bg-primary/90 flex items-center justify-center gap-2 disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {saving ? 'Saving...' : 'Save Asset'}
+            </button>
+            <button onClick={() => setShowForm(false)}
+              className="flex-1 h-10 bg-accent font-mono text-xs rounded hover:bg-accent/80">
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2">
-        {['ALL','OPERATIONAL','MAINTENANCE','RETIRED'].map(s => (
-          <button key={s} onClick={() => setFilterStatus(s)}
-            className={`font-mono text-xs px-3 py-1.5 rounded border transition-all ${filterStatus === s ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}>
-            {s}
-          </button>
-        ))}
-        <span className="text-muted-foreground">|</span>
-        {['ALL', ...CATEGORIES].map(c => (
-          <button key={c} onClick={() => setFilterCat(c)}
-            className={`font-mono text-xs px-3 py-1.5 rounded border transition-all ${filterCat === c ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}>
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {/* Table */}
+      {/* List View */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="p-4 border-b border-border bg-accent/30 flex items-center justify-between">
+          <div className="relative w-full max-w-xs">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search asset tag or model..."
+              className="w-full h-9 pl-9 pr-3 bg-background border border-border rounded font-mono text-sm focus:border-primary focus:outline-none" />
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border bg-accent/50">
-                {['Asset Tag','Name','Category','Status','Location','Purchase Date','Value','Next Service'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 font-mono text-xs text-muted-foreground whitespace-nowrap">{h}</th>
-                ))}
-                {(isHOD || isFaculty) && <th className="px-4 py-3 font-mono text-xs text-muted-foreground">Action</th>}
+              <tr className="border-b border-border">
+                <th className="p-4 font-mono text-xs text-muted-foreground font-normal">Asset Tag</th>
+                <th className="p-4 font-mono text-xs text-muted-foreground font-normal">Details</th>
+                <th className="p-4 font-mono text-xs text-muted-foreground font-normal">Location</th>
+                <th className="p-4 font-mono text-xs text-muted-foreground font-normal">Status</th>
+                {isHOD && <th className="p-4 font-mono text-xs text-muted-foreground font-normal text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-12 text-center font-mono text-sm text-muted-foreground">No assets found</td></tr>
-              ) : filtered.map(item => {
-                const serviceOverdue = item.next_service_date && new Date(item.next_service_date) < new Date()
-                return (
-                  <tr key={item.id} className="hover:bg-accent/30 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs font-bold">{item.asset_tag}</td>
-                    <td className="px-4 py-3 text-sm">{item.name}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{item.category}</td>
-                    <td className="px-4 py-3">
-                      <span className={`font-mono text-xs px-2 py-0.5 rounded border ${STATUS_COLORS[item.status]}`}>
-                        {item.status}
-                      </span>
+              {loading ? (
+                <tr><td colSpan={5} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></td></tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center">
+                    <Package className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                    <p className="font-mono text-sm text-muted-foreground">No assets found</p>
+                  </td>
+                </tr>
+              ) : filtered.map((item) => (
+                <tr key={item.id} className="hover:bg-accent/20 transition-colors">
+                  <td className="p-4 font-mono text-xs font-bold text-primary">{item.asset_tag}</td>
+                  <td className="p-4">
+                    <p className="text-sm font-medium">{item.name}</p>
+                    <p className="font-mono text-xs text-muted-foreground mt-0.5">{item.category}</p>
+                  </td>
+                  <td className="p-4 font-mono text-xs text-muted-foreground">{item.location}</td>
+                  <td className="p-4">
+                    <span className={`font-mono text-[10px] font-bold px-2 py-1 rounded border ${STATUS_COLORS[item.status as keyof typeof STATUS_COLORS]}`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  {isHOD && (
+                    <td className="p-4 text-right">
+                      <select 
+                        value={item.status} 
+                        onChange={e => updateStatus(item.id, e.target.value)}
+                        className="h-8 px-2 bg-background border border-border rounded font-mono text-xs focus:border-primary focus:outline-none cursor-pointer">
+                        <option value="OPERATIONAL">Set Operational</option>
+                        <option value="MAINTENANCE">Send to Repair</option>
+                        <option value="RETIRED">Retire Asset</option>
+                      </select>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{item.location ?? '—'}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                      {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : '—'}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs">
-                      {item.purchase_value ? `₹${Number(item.purchase_value).toLocaleString()}` : '—'}
-                    </td>
-                    <td className={`px-4 py-3 font-mono text-xs ${serviceOverdue ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>
-                      {item.next_service_date ? new Date(item.next_service_date).toLocaleDateString() : '—'}
-                      {serviceOverdue && ' ⚠'}
-                    </td>
-                    {(isHOD || isFaculty) && (
-                      <td className="px-4 py-3">
-                        <select value={item.status}
-                          onChange={e => updateStatus(item.id, e.target.value as any)}
-                          className="h-7 px-2 bg-background border border-border rounded font-mono text-xs focus:border-primary focus:outline-none">
-                          <option value="OPERATIONAL">Operational</option>
-                          <option value="MAINTENANCE">Maintenance</option>
-                          <option value="RETIRED">Retired</option>
-                        </select>
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

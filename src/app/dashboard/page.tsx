@@ -14,6 +14,8 @@ import {
 import type { AuthUser } from "@/lib/auth"
 
 const NAV_HOD = [
+  { icon: LayoutDashboard, label: "Dashboard",  href: "/dashboard" },
+  { icon: Users,           label: "Students",   href: "/dashboard/students" },
   { icon: ClipboardList,   label: "Attendance", href: "/dashboard/attendance" },
   { icon: BarChart3,       label: "Marks",      href: "/dashboard/marks" },
   { icon: BookOpen,        label: "Subjects",   href: "/dashboard/subjects" },
@@ -29,7 +31,10 @@ const NAV_HOD = [
   { icon: AlertTriangle,   label: "Grievances", href: "/dashboard/grievances" },
   { icon: Bell,            label: "Notices",    href: "/dashboard/notices" },
 ]
+
 const NAV_FACULTY = [
+  { icon: LayoutDashboard, label: "Dashboard",  href: "/dashboard" },
+  { icon: Users,           label: "Students",   href: "/dashboard/students" },
   { icon: ClipboardList,   label: "Attendance", href: "/dashboard/attendance" },
   { icon: BarChart3,       label: "Marks",      href: "/dashboard/marks" },
   { icon: BookOpen,        label: "Subjects",   href: "/dashboard/subjects" },
@@ -40,7 +45,9 @@ const NAV_FACULTY = [
   { icon: MessageSquare,   label: "Feedback",   href: "/dashboard/feedback" },
   { icon: Bell,            label: "Notices",    href: "/dashboard/notices" },
 ]
+
 const NAV_STUDENT = [
+  { icon: LayoutDashboard, label: "Dashboard",  href: "/dashboard" },
   { icon: ClipboardList,   label: "Attendance", href: "/dashboard/attendance" },
   { icon: BarChart3,       label: "Marks",      href: "/dashboard/marks" },
   { icon: BookOpen,        label: "Subjects",   href: "/dashboard/subjects" },
