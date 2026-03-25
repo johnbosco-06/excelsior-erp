@@ -1,7 +1,5 @@
 "use client"
 
-export const dynamic = "force-dynamic"
-
 import { useEffect, useState } from "react"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
@@ -29,7 +27,6 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground overflow-hidden">
-
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:80px_80px]" />
@@ -73,7 +70,6 @@ export default function LoginPage() {
 
       {/* Main */}
       <div className="relative min-h-screen flex">
-
         {/* Left — Hero */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-32">
           <div className={`flex items-center gap-4 mb-12 transition-all duration-700 delay-100 ${mounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"}`}>
@@ -81,7 +77,6 @@ export default function LoginPage() {
             <div className="h-px flex-1 bg-border max-w-[100px]" />
             <span className="font-mono text-xs text-muted-foreground">001</span>
           </div>
-
           <div className="mb-8">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.9] tracking-tight overflow-hidden">
               <span className="block text-foreground">
@@ -105,13 +100,11 @@ export default function LoginPage() {
               <span className="font-mono text-xs text-muted-foreground">UNIVERSITY MANAGEMENT SYSTEM</span>
             </div>
           </div>
-
           <div className={`mb-12 max-w-md transition-all duration-700 delay-300 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
             <p className="text-muted-foreground leading-relaxed">
               Your gateway to academic excellence. Access courses, grades, schedules, and campus resources — all in one place.
             </p>
           </div>
-
           <div className={`lg:hidden flex items-center gap-2 text-muted-foreground transition-all duration-700 delay-500 ${mounted ? "opacity-100" : "opacity-0"}`}>
             <ChevronDown className="w-4 h-4 animate-bounce" />
             <span className="font-mono text-xs">SCROLL TO LOGIN</span>
@@ -122,7 +115,6 @@ export default function LoginPage() {
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-32 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-border to-transparent" />
-
           <div className={`flex items-center gap-4 mb-12 transition-all duration-700 delay-500 ${mounted ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}`}>
             <span className="font-mono text-xs text-primary">// SECTION: AUTH</span>
             <div className="h-px flex-1 bg-border max-w-[100px]" />
@@ -130,25 +122,27 @@ export default function LoginPage() {
           </div>
 
           <div className={`relative transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-12 scale-95"}`} style={{ transitionDelay: "600ms" }}>
-            {/* Terminal dots */}
             <div className="flex items-center gap-2 mb-6">
               {[["bg-red-400/80","900ms"],["bg-yellow-400/80","1000ms"],["bg-green-400/80","1100ms"]].map(([color, delay], i) => (
                 <div key={i} className={`w-3 h-3 rounded-full ${color} transition-all duration-300 ${mounted ? "scale-100" : "scale-0"}`} style={{ transitionDelay: delay }} />
               ))}
               <span className={`font-mono text-xs text-muted-foreground ml-4 transition-all duration-500 ${mounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} style={{ transitionDelay: "1200ms" }}>auth_portal.exe</span>
             </div>
-
+            
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-8 relative overflow-hidden group hover:border-primary/50 transition-colors duration-500">
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                 <div className="absolute inset-[-1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_2s_infinite]" />
               </div>
               <h2 className={`text-2xl font-bold mb-2 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "800ms" }}>Sign In</h2>
               <p className={`text-sm text-muted-foreground mb-8 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "900ms" }}>Access your academic dashboard</p>
+              
               <LoginForm />
+              
               <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
                 <div className="relative flex justify-center"><span className="bg-card/50 px-4 font-mono text-xs text-muted-foreground">OR</span></div>
               </div>
+              
               <button className="w-full h-12 border border-border hover:border-primary text-foreground font-mono text-sm rounded transition-all duration-300 hover:bg-primary/5 group flex items-center justify-center gap-2">
                 Request New Account
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
