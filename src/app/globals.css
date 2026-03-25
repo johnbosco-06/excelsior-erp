@@ -4,31 +4,35 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --background: #0a0e27;
+  --foreground: #f0f4ff;
+  --card: #1a1f3a;
+  --card-foreground: #f0f4ff;
+  --primary: #00ffff;
+  --primary-foreground: #0a0e27;
+  --muted: #2d3654;
+  --muted-foreground: #a0a9c3;
+  --border: #2d3654;
+  --input: #1a1f3a;
+  --ring: #ff00ff;
+  --destructive: #ff1744;
   --radius: 0.625rem;
+  --accent-1: #ff006e;
+  --accent-2: #ffbe0b;
+  --accent-3: #3a86ff;
+  --accent-4: #fb5607;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
+  --background: #0a0e27;
+  --foreground: #f0f4ff;
+  --card: #1a1f3a;
+  --primary: #00ffff;
+  --primary-foreground: #0a0e27;
+  --muted: #2d3654;
+  --muted-foreground: #a0a9c3;
+  --border: #2d3654;
+  --input: #1a1f3a;
 }
 
 @theme inline {
@@ -73,6 +77,40 @@
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+@keyframes glow {
+  0%, 100% { 
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3);
+  }
+  50% { 
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.8), 0 0 40px rgba(255, 0, 255, 0.5);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes neon-glow {
+  0%, 100% { 
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3), 0 0 20px rgba(0, 255, 255, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), 0 0 30px rgba(0, 255, 255, 0.4);
+  }
+}
+
+@keyframes float-rotate {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+
+/* Input focus glow effect */
+input:focus {
+  @apply shadow-[0_0_15px_rgba(0,255,255,0.4)];
 }
 
 /* Rich Editor Styles */

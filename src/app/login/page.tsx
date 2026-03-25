@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
+import { Scene3D } from "@/components/3d-scene"
 
 function NavLink({ href, label }: { href: string; label: string }) {
   return (
@@ -28,35 +29,18 @@ export default function LoginPage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-background text-foreground overflow-hidden">
+    <main className="min-h-screen bg-background text-foreground overflow-hidden relative">
 
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:80px_80px]" />
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-[float_20s_ease-in-out_infinite]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-primary/3 rounded-full blur-[100px] animate-[float_25s_ease-in-out_infinite_reverse]" />
-        <svg className="absolute inset-0 w-full h-full opacity-20">
-          <line x1="0%" y1="30%" x2="100%" y2="30%" stroke="url(#lg)" strokeWidth="1" strokeDasharray="20 40" className="animate-[dash_8s_linear_infinite]" />
-          <line x1="0%" y1="70%" x2="100%" y2="70%" stroke="url(#lg)" strokeWidth="1" strokeDasharray="30 50" className="animate-[dash_12s_linear_infinite_reverse]" />
-          <line x1="20%" y1="0%" x2="20%" y2="100%" stroke="url(#lgv)" strokeWidth="1" strokeDasharray="25 45" className="animate-[dashV_10s_linear_infinite]" />
-          <line x1="80%" y1="0%" x2="80%" y2="100%" stroke="url(#lgv)" strokeWidth="1" strokeDasharray="15 35" className="animate-[dashV_14s_linear_infinite_reverse]" />
-          <defs>
-            <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="transparent" />
-              <stop offset="50%" stopColor="currentColor" />
-              <stop offset="100%" stopColor="transparent" />
-            </linearGradient>
-            <linearGradient id="lgv" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="transparent" />
-              <stop offset="50%" stopColor="currentColor" />
-              <stop offset="100%" stopColor="transparent" />
-            </linearGradient>
-          </defs>
-        </svg>
+      {/* 3D Canvas Background */}
+      <div className="fixed inset-0 z-0">
+        <Scene3D />
       </div>
+      
+      {/* Gradient Overlay */}
+      <div className="fixed inset-0 bg-gradient-to-br from-background/40 via-background/60 to-background/80 pointer-events-none z-10" />
 
       {/* Navbar */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}>
         <div className="flex items-center justify-between px-6 md:px-12 py-6">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -72,7 +56,7 @@ export default function LoginPage() {
       </nav>
 
       {/* Main */}
-      <div className="relative min-h-screen flex">
+      <div className="relative z-20 min-h-screen flex">
 
         {/* Left — Hero */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-32">
@@ -94,7 +78,7 @@ export default function LoginPage() {
                   <span key={i} className={`inline-block transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"}`} style={{ transitionDelay: `${450 + i * 50}ms` }}>{l}</span>
                 ))}
               </span>
-              <span className="block text-primary">
+              <span className="block text-transparent bg-gradient-to-r from-primary via-cyan-300 to-blue-400 bg-clip-text animate-glow">
                 {"LICET".split("").map((l, i) => (
                   <span key={i} className={`inline-block transition-all duration-500 hover:text-foreground cursor-default ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"}`} style={{ transitionDelay: `${700 + i * 50}ms` }}>{l}</span>
                 ))}
@@ -138,11 +122,11 @@ export default function LoginPage() {
               <span className={`font-mono text-xs text-muted-foreground ml-4 transition-all duration-500 ${mounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} style={{ transitionDelay: "1200ms" }}>auth_portal.exe</span>
             </div>
 
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-8 relative overflow-hidden group hover:border-primary/50 transition-colors duration-500">
+            <div className="bg-gradient-to-br from-slate-950/60 via-slate-900/50 to-slate-950/60 backdrop-blur-2xl border border-cyan-500/40 rounded-2xl p-10 relative overflow-hidden group hover:border-cyan-400/60 transition-all duration-500 shadow-[0_0_40px_rgba(0,255,255,0.25),inset_0_0_20px_rgba(0,255,255,0.1)] hover:shadow-[0_0_60px_rgba(0,255,255,0.5),inset_0_0_30px_rgba(0,255,255,0.15)]">
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                <div className="absolute inset-[-1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[shimmer_2s_infinite]" />
+                <div className="absolute inset-[-1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent animate-[shimmer_2s_infinite]" />
               </div>
-              <h2 className={`text-2xl font-bold mb-2 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "800ms" }}>Sign In</h2>
+              <h2 className={`text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-cyan-300 to-blue-400 bg-clip-text text-transparent transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "800ms" }}>Sign In</h2>
               <p className={`text-sm text-muted-foreground mb-8 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "900ms" }}>Access your academic dashboard</p>
               <LoginForm />
               <div className="relative my-8">
@@ -164,7 +148,7 @@ export default function LoginPage() {
       </div>
 
       {/* Bottom status bar */}
-      <div className={`fixed bottom-0 left-0 right-0 border-t border-border bg-background/80 backdrop-blur-sm px-6 py-3 transition-all duration-700 delay-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+      <div className={`fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/80 backdrop-blur-sm px-6 py-3 transition-all duration-700 delay-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
         <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />SYSTEM_ONLINE</span>
