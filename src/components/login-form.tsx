@@ -40,7 +40,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 relative">
       <div
         className={`space-y-2 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         style={{ transitionDelay: "100ms" }}
@@ -49,7 +49,7 @@ export function LoginForm() {
           <span className={`text-primary transition-all duration-300 ${focusedField === "email" ? "animate-pulse" : ""}`}>&gt;</span>
           Email_ID
         </label>
-        <div className="relative">
+        <div className="relative group">
           <Input
             type="email"
             placeholder="your.email@licet.ac.in"
@@ -57,10 +57,10 @@ export function LoginForm() {
             onFocus={() => setFocusedField("email")}
             onBlur={() => setFocusedField(null)}
             onChange={e => setFormData({ ...formData, email: e.target.value })}
-            className="h-12 bg-background border-border font-mono text-sm placeholder:text-muted-foreground/50 focus:border-primary transition-all duration-300"
+            className="h-12 bg-background/50 border border-primary/30 font-mono text-sm placeholder:text-muted-foreground/50 focus:border-primary focus:bg-background focus:shadow-[0_0_20px_rgba(0,255,255,0.3)] transition-all duration-300 group-hover:border-primary/50"
             required
           />
-          <div className={`absolute bottom-0 left-0 h-px bg-gradient-to-r from-primary to-primary/50 transition-all duration-500 ${focusedField === "email" ? "w-full" : "w-0"}`} />
+          <div className={`absolute bottom-0 left-0 h-px bg-gradient-to-r from-primary via-cyan-400 to-primary/50 transition-all duration-500 ${focusedField === "email" ? "w-full shadow-[0_0_10px_rgba(0,255,255,0.6)]" : "w-0"}`} />
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export function LoginForm() {
           <span className={`text-primary transition-all duration-300 ${focusedField === "password" ? "animate-pulse" : ""}`}>&gt;</span>
           Password
         </label>
-        <div className="relative">
+        <div className="relative group">
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="your password"
@@ -80,17 +80,17 @@ export function LoginForm() {
             onFocus={() => setFocusedField("password")}
             onBlur={() => setFocusedField(null)}
             onChange={e => setFormData({ ...formData, password: e.target.value })}
-            className="h-12 bg-background border-border font-mono text-sm placeholder:text-muted-foreground/50 pr-12 focus:border-primary transition-all duration-300"
+            className="h-12 bg-background/50 border border-primary/30 font-mono text-sm placeholder:text-muted-foreground/50 pr-12 focus:border-primary focus:bg-background focus:shadow-[0_0_20px_rgba(0,255,255,0.3)] transition-all duration-300 group-hover:border-primary/50"
             required
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all"
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
-          <div className={`absolute bottom-0 left-0 h-px bg-gradient-to-r from-primary to-primary/50 transition-all duration-500 ${focusedField === "password" ? "w-full" : "w-0"}`} />
+          <div className={`absolute bottom-0 left-0 h-px bg-gradient-to-r from-primary via-cyan-400 to-primary/50 transition-all duration-500 ${focusedField === "password" ? "w-full shadow-[0_0_10px_rgba(0,255,255,0.6)]" : "w-0"}`} />
         </div>
       </div>
 
@@ -124,9 +124,9 @@ export function LoginForm() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-sm uppercase tracking-wider transition-all duration-300 group relative overflow-hidden"
+          className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-900 font-mono font-bold text-sm uppercase tracking-widest transition-all duration-300 group relative overflow-hidden shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:shadow-[0_0_30px_rgba(0,255,255,0.6)]"
         >
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           {isLoading ? (
             <span className="flex items-center gap-2 relative z-10">
               <Loader2 className="w-4 h-4 animate-spin" />

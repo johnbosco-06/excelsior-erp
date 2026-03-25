@@ -20,6 +20,13 @@ export const metadata: Metadata = {
     description: "LICET CSE Department Management System",
     siteName: "Excelsior ERP",
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    colorScheme: "dark",
+  },
 };
 
 export default function RootLayout({
@@ -34,7 +41,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/licet-logo.png" />
         <link rel="shortcut icon" href="/licet-logo.png" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}>
         {children}
       </body>
     </html>
