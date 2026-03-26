@@ -32,3 +32,4 @@ tsconfig.tsbuildinfo
 src/lib.zip
 src/**/*.zip
 src/app/**/*.zip
+tsconfig.tsbuildinfo
