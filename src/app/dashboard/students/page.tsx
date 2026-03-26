@@ -85,7 +85,7 @@ export default function StudentsPage() {
     
     setLoading(true)
     const res = await deleteStudentAdmin(id)
-    if (res.error) alert(res.error)
+    if (res.error) { setError(res.error); setLoading(false) }
     else loadStudents()
   }
 

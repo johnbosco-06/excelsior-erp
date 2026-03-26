@@ -23,3 +23,12 @@ yarn-error.log*
 .DS_Store
 *.pem
 .vercel
+
+# Build artifacts — never commit these
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# Accidental archives committed to source
+src/lib.zip
+src/**/*.zip
+src/app/**/*.zip

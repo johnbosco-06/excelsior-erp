@@ -1,251 +1,134 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import {
-  LayoutDashboard, ClipboardList, BarChart3, BookOpen,
-  Calendar, Activity, Wallet, Package, Award,
-  Heart, Briefcase, FolderOpen, MessageSquare,
-  AlertTriangle, Bell, FileText, KeyRound,
-  TrendingUp, BarChart2, Users, LogOut,
-  ChevronRight, Menu, X, Star, FileEdit,
+  AlertCircle, Activity, Star, ClipboardCheck, PieChart, Key, FileText, 
+  PenTool, CalendarDays, BookOpen, MessageSquare, Wallet, AlertTriangle, 
+  Package, Heart, Award, ShieldCheck, Bell, Briefcase, TrendingUp, 
+  FileBarChart, Users, Library, Clock, LogOut, LayoutDashboard
 } from "lucide-react"
-
 import type { AuthUser } from "@/lib/auth"
+import { getAllowedModules } from "@/lib/roles"
+import { Scene3D } from "@/components/3d-scene"
+import { StarCursor } from "@/components/star-cursor"
+import { Outfit } from "next/font/google"
 
-// ─── Nav definitions ──────────────────────────────────────────────────────────
+const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] })
 
-const NAV_HOD = [
-  { icon: LayoutDashboard, label: "Dashboard",           href: "/dashboard" },
-  { icon: Users,           label: "Students",            href: "/dashboard/students" },
-  { icon: ClipboardList,   label: "Attendance",          href: "/dashboard/attendance" },
-  { icon: BarChart2,       label: "Attendance Analysis", href: "/dashboard/attendance-analysis" },
-  { icon: BarChart3,       label: "Marks",               href: "/dashboard/marks" },
-  { icon: BookOpen,        label: "Subjects",            href: "/dashboard/subjects" },
-  { icon: Calendar,        label: "Timetable",           href: "/dashboard/timetable" },
-  { icon: FileText,        label: "Examination",         href: "/dashboard/examination" },
-  { icon: TrendingUp,      label: "Promotion",           href: "/dashboard/promotion" },
-  { icon: Activity,        label: "Analytics",           href: "/dashboard/analytics" },
-  { icon: BarChart3,       label: "Reports",             href: "/dashboard/reports" },
-  { icon: Wallet,          label: "Finance",             href: "/dashboard/finance" },
-  { icon: Package,         label: "Inventory",           href: "/dashboard/inventory" },
-  { icon: Award,           label: "Placements",          href: "/dashboard/placements" },
-  { icon: Star,            label: "Appraisal",           href: "/dashboard/appraisal" },
-  { icon: Heart,           label: "Leaves",              href: "/dashboard/leaves" },
-  { icon: Briefcase,       label: "Events",              href: "/dashboard/events" },
-  { icon: FolderOpen,      label: "Documents",           href: "/dashboard/documents" },
-  { icon: FileEdit,        label: "Editor",              href: "/dashboard/editor" },
-  { icon: MessageSquare,   label: "Feedback",            href: "/dashboard/feedback" },
-  { icon: AlertTriangle,   label: "Grievances",          href: "/dashboard/grievances" },
-  { icon: Bell,            label: "Alerts",              href: "/dashboard/alerts" },
-  { icon: Bell,            label: "Notices",             href: "/dashboard/notices" },
-  { icon: BarChart3,       label: "NAAC",                href: "/dashboard/naac" },
-  { icon: KeyRound,        label: "Change Password",     href: "/dashboard/change-password" },
+const DOCK_ITEMS = [
+  { icon: LayoutDashboard, label: "dashboard",       id: "dashboard" },
+  { icon: Users,           label: "students",        id: "students" },
+  { icon: ClipboardCheck,  label: "attendance",      id: "attendance" },
+  { icon: Award,           label: "marks",           id: "marks" },
+  { icon: Library,         label: "subjects",        id: "subjects" },
+  { icon: Clock,           label: "timetable",       id: "timetable" },
+  { icon: Activity,        label: "analytics",       id: "analytics" },
+  { icon: Wallet,          label: "finance",         id: "finance" },
+  { icon: Package,         label: "inventory",       id: "inventory" },
+  { icon: Briefcase,       label: "placements",      id: "placements" },
+  { icon: Heart,           label: "leaves",          id: "leaves" },
+  { icon: CalendarDays,    label: "events",          id: "events" },
+  { icon: FileText,        label: "documents",       id: "documents" },
+  { icon: MessageSquare,   label: "feedback",        id: "feedback" },
+  { icon: AlertTriangle,   label: "grievances",      id: "grievances" },
+  { icon: Bell,            label: "notices",         id: "notices" },
+  { icon: AlertCircle,     label: "alerts",          id: "alerts" },
+  { icon: Star,            label: "appraisal",       id: "appraisal" },
+  { icon: PieChart,        label: "att. analysis",   id: "attendance-analysis" },
+  { icon: Key,             label: "password",        id: "change-password" },
+  { icon: PenTool,         label: "editor",          id: "editor" },
+  { icon: BookOpen,        label: "examination",     id: "examination" },
+  { icon: ShieldCheck,     label: "naac",            id: "naac" },
+  { icon: TrendingUp,      label: "promotion",       id: "promotion" },
+  { icon: FileBarChart,    label: "reports",         id: "reports" },
 ]
-
-const NAV_FACULTY = [
-  { icon: LayoutDashboard, label: "Dashboard",       href: "/dashboard" },
-  { icon: Users,           label: "Students",        href: "/dashboard/students" },
-  { icon: ClipboardList,   label: "Attendance",      href: "/dashboard/attendance" },
-  { icon: BarChart3,       label: "Marks",           href: "/dashboard/marks" },
-  { icon: BookOpen,        label: "Subjects",        href: "/dashboard/subjects" },
-  { icon: Calendar,        label: "Timetable",       href: "/dashboard/timetable" },
-  { icon: FileText,        label: "Examination",     href: "/dashboard/examination" },
-  { icon: Star,            label: "Appraisal",       href: "/dashboard/appraisal" },
-  { icon: Heart,           label: "Leaves",          href: "/dashboard/leaves" },
-  { icon: Briefcase,       label: "Events",          href: "/dashboard/events" },
-  { icon: FolderOpen,      label: "Documents",       href: "/dashboard/documents" },
-  { icon: MessageSquare,   label: "Feedback",        href: "/dashboard/feedback" },
-  { icon: Bell,            label: "Notices",         href: "/dashboard/notices" },
-  { icon: KeyRound,        label: "Change Password", href: "/dashboard/change-password" },
-]
-
-const NAV_STUDENT = [
-  { icon: LayoutDashboard, label: "Dashboard",       href: "/dashboard" },
-  { icon: ClipboardList,   label: "Attendance",      href: "/dashboard/attendance" },
-  { icon: BarChart3,       label: "Marks",           href: "/dashboard/marks" },
-  { icon: BookOpen,        label: "Subjects",        href: "/dashboard/subjects" },
-  { icon: Calendar,        label: "Timetable",       href: "/dashboard/timetable" },
-  { icon: Award,           label: "Placements",      href: "/dashboard/placements" },
-  { icon: Heart,           label: "Leaves",          href: "/dashboard/leaves" },
-  { icon: FolderOpen,      label: "Documents",       href: "/dashboard/documents" },
-  { icon: MessageSquare,   label: "Feedback",        href: "/dashboard/feedback" },
-  { icon: AlertTriangle,   label: "Grievances",      href: "/dashboard/grievances" },
-  { icon: Bell,            label: "Notices",         href: "/dashboard/notices" },
-  { icon: KeyRound,        label: "Change Password", href: "/dashboard/change-password" },
-]
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** "attendance-analysis" → "Attendance Analysis" */
-function formatPageTitle(segment: string): string {
-  return segment
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ")
-}
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router   = useRouter()
-  const pathname = usePathname()
-
-  const [authUser, setAuthUser]   = useState<AuthUser | null>(null)
-  const [authLoading, setLoading] = useState(true)
-  const [sidebarOpen, setSidebar] = useState(false)
-  const [currentTime, setTime]    = useState("")
+  const router = useRouter()
+  const [currentTime, setTime] = useState('')
+  const [allowedModules, setAllowedModules] = useState<string[]>([])
 
   useEffect(() => {
-    const stored = localStorage.getItem("excelsior_user")
-    if (!stored) { router.push("/login"); return }
-    setAuthUser(JSON.parse(stored) as AuthUser)
-    setLoading(false)
+    const stored = localStorage.getItem('excelsior_user')
+    if (!stored) { router.push('/login'); return }
+    const user = JSON.parse(stored) as AuthUser
+    
+    setAllowedModules(getAllowedModules(user.type, user.type === 'staff' ? user.data.role : ''))
 
-    const update = () =>
-      setTime(
-        new Date().toLocaleTimeString("en-US", {
-          hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit",
-        })
-      )
+    const update = () => setTime(new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }))
     update()
     const t = setInterval(update, 1000)
     return () => clearInterval(t)
   }, [router])
 
   const handleLogout = () => {
-    localStorage.removeItem("excelsior_user")
-    router.push("/login")
+    localStorage.removeItem('excelsior_user')
+    router.push('/login')
   }
 
-  const isHOD     = authUser?.type === "staff" && authUser.data.role === "HOD"
-  const isFaculty = authUser?.type === "staff" && authUser.data.role === "FACULTY"
-  const isStudent = authUser?.type === "student"
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id)
+    const container = document.getElementById('scroll-container')
+    if (element && container) {
+      const topPos = element.offsetTop
+      container.scrollTo({ top: topPos, behavior: 'smooth' })
+    }
+  }
 
-  // FIX 1: no nav shown while loading — avoids flashing NAV_STUDENT for HOD/Faculty
-  const navItems = authLoading
-    ? []
-    : isHOD ? NAV_HOD : isFaculty ? NAV_FACULTY : NAV_STUDENT
-
-  const name     = authUser?.data.name ?? "..."
-  const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
-
-  // FIX 2: explicit fallback for each role, unknown staff roles won't show FACULTY
-  const roleLabel = isHOD
-    ? "HEAD_OF_DEPT"
-    : isFaculty
-    ? "FACULTY"
-    : isStudent
-    ? (authUser?.data as { section?: string })?.section ?? "STUDENT"
-    : authUser?.type === "staff"
-    ? (authUser.data as { role?: string }).role ?? "STAFF"
-    : "USER"
-
-  // FIX 3: handles hyphenated routes like "attendance-analysis" → "Attendance Analysis"
-  const segment   = pathname.split("/")[2] ?? ""
-  const pageTitle = segment
-    ? formatPageTitle(segment)
-    : isHOD ? "Command Center" : isFaculty ? "Faculty Dashboard" : "Student Dashboard"
-
-  // FIX 4: derive department from student section where possible
-  const department = isStudent
-    ? (authUser?.data as { section?: string })?.section?.split(" ")[1] ?? "CSE"
-    : "CSE"
+  const visibleDockItems = DOCK_ITEMS.filter(item => allowedModules.includes(item.id))
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setSidebar(false)} />
-      )}
+    <div className={`h-screen w-full bg-[#010308] text-white flex flex-col items-center overflow-hidden ${outfit.className} cursor-none relative`}>
+      <StarCursor />
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-40"><Scene3D /></div>
 
-      {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-50 flex flex-col transition-transform duration-300
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:flex`}>
-
-        {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="font-mono text-sm font-bold">EXCELSIOR.LICET</span>
-          </div>
-          <button onClick={() => setSidebar(false)} className="lg:hidden text-muted-foreground hover:text-foreground">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* User info */}
-        <div className="px-6 py-4 border-b border-border flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm flex-shrink-0">
-              {authLoading ? "…" : initials || "??"}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{name}</p>
-              <p className="font-mono text-xs text-muted-foreground truncate">
-                {roleLabel} · {department}
-              </p>
-            </div>
+      <header className="w-11/12 max-w-[1600px] flex justify-between items-center py-6 z-20 flex-shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_15px_#22d3ee]" />
+          <div>
+            <span className="font-mono text-[10px] text-cyan-500 tracking-[0.2em] uppercase block mb-0.5">LICET CSE NETWORK // ACTIVE LINK</span>
+            <h1 className="text-xl font-bold tracking-[0.2em] text-white uppercase">EXCELSIOR <span className="text-slate-500 font-light ml-2 text-sm">// COMMAND NODE</span></h1>
           </div>
         </div>
+        <div className="flex items-center gap-6"><span className="font-mono text-xs text-cyan-400 hidden sm:block tracking-widest">{currentTime}</span></div>
+      </header>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-          {authLoading ? (
-            <p className="px-3 py-2 text-xs font-mono text-muted-foreground">Loading…</p>
-          ) : (
-            navItems.map(({ icon: Icon, label, href }) => {
-              const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
-              return (
-                <Link key={href} href={href} onClick={() => setSidebar(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-mono transition-all
-                    ${active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"}`}>
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span>{label}</span>
-                  {active && <ChevronRight className="w-3 h-3 ml-auto" />}
-                </Link>
-              )
-            })
-          )}
-        </nav>
-
-        {/* Logout */}
-        <div className="px-3 py-4 border-t border-border flex-shrink-0">
-          <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-mono text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all">
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebar(true)} className="lg:hidden text-muted-foreground hover:text-foreground">
-              <Menu className="w-5 h-5" />
-            </button>
-            <div>
-              <span className="font-mono text-xs text-primary">// EXCELSIOR · LICET CSE</span>
-              <h1 className="text-xl font-bold tracking-tight">{pageTitle}</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-xs text-muted-foreground hidden sm:block">{currentTime}</span>
-            <Link href="/dashboard/alerts" className="relative p-2 rounded-lg hover:bg-accent transition-colors">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </Link>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto">
+      <main className="w-11/12 max-w-[1600px] flex-1 mb-28 bg-[#0a101d]/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden flex flex-col z-10 relative">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-500/50 to-transparent opacity-50" />
+        <div id="scroll-container" className="flex-1 overflow-y-auto custom-scrollbar scroll-smooth relative">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
+
+      <nav className="fixed bottom-6 z-50 max-w-[95vw] overflow-x-auto scrollbar-none px-4 py-4 pointer-events-auto">
+        <div className="flex items-center gap-1 px-4 py-3 bg-[#0a101d]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.8)]">
+          {visibleDockItems.map(({ icon: Icon, label, id }) => (
+            <motion.button key={id} onClick={() => scrollToSection(id)} whileHover={{ scale: 1.6, y: -15, zIndex: 50 }} whileTap={{ scale: 0.9 }} className="relative group p-2 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-300 hover:bg-white/5 transition-colors origin-bottom">
+              <Icon className="w-5 h-5" />
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 backdrop-blur-md border border-white/5 rounded-lg text-[9px] font-light tracking-[0.15em] lowercase text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+                {label}
+              </div>
+            </motion.button>
+          ))}
+          <div className="w-px h-8 bg-white/10 mx-3 flex-shrink-0" />
+          <motion.button onClick={handleLogout} whileHover={{ scale: 1.6, y: -15, zIndex: 50 }} whileTap={{ scale: 0.9 }} className="relative group p-2 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-white/5 transition-colors origin-bottom flex-shrink-0">
+            <LogOut className="w-5 h-5" />
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 backdrop-blur-md border border-white/5 rounded-lg text-[9px] font-light tracking-[0.15em] lowercase text-red-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">disconnect</div>
+          </motion.button>
+        </div>
+      </nav>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        * { cursor: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(14,165,233,0.5); }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+      `}} />
     </div>
   )
 }
